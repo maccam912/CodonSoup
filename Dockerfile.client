@@ -20,4 +20,4 @@ WORKDIR /app/client
 
 # Default command (can be overridden)
 ENTRYPOINT ["uv", "run", "python", "client.py"]
-CMD ["--server=http://server:8080", "--generations=50"]
+CMD []
