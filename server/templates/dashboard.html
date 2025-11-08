@@ -39,7 +39,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
@@ -50,12 +50,25 @@
             margin-bottom: 20px;
         }
 
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
         .card {
             background: #1a1a2e;
             padding: 25px;
             border: 2px solid #0f0;
             border-radius: 8px;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.4);
+            transform: translateY(-2px);
         }
 
         .card h2 {
@@ -64,6 +77,12 @@
             font-size: 1.5em;
             border-bottom: 1px solid #0f0444;
             padding-bottom: 10px;
+        }
+
+        .card h3 {
+            color: #0f0888;
+            margin: 15px 0 10px 0;
+            font-size: 1.2em;
         }
 
         .stat-grid {
@@ -95,6 +114,162 @@
             position: relative;
             height: 300px;
             margin-top: 20px;
+        }
+
+        .genome-viz {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            min-height: 350px;
+        }
+
+        .circular-genome {
+            position: relative;
+            width: 300px;
+            height: 300px;
+        }
+
+        .genome-circle {
+            fill: none;
+            stroke: #0f0444;
+            stroke-width: 2;
+        }
+
+        .gene-arc {
+            fill: none;
+            stroke-width: 8;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .gene-arc:hover {
+            opacity: 1;
+            stroke-width: 10;
+        }
+
+        .gene-arc.speed { stroke: #ff6b6b; }
+        .gene-arc.turn_rate { stroke: #4ecdc4; }
+        .gene-arc.phototaxis { stroke: #ffe66d; }
+        .gene-arc.efficiency { stroke: #95e1d3; }
+        .gene-arc.regulatory { stroke: #f38181; stroke-dasharray: 5,5; }
+
+        .phenotype-bars {
+            margin-top: 20px;
+        }
+
+        .phenotype-row {
+            margin-bottom: 15px;
+            opacity: 0;
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        .phenotype-row:nth-child(1) { animation-delay: 0.1s; }
+        .phenotype-row:nth-child(2) { animation-delay: 0.2s; }
+        .phenotype-row:nth-child(3) { animation-delay: 0.3s; }
+        .phenotype-row:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .phenotype-label {
+            color: #0f0888;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .phenotype-bar-bg {
+            background: #0d0d0d;
+            height: 25px;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .phenotype-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #0f0444, #0f0);
+            border-radius: 5px;
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .fitness-explanation {
+            background: #0d0d0d;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #95e1d3;
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+
+        .fitness-explanation h4 {
+            color: #95e1d3;
+            margin-bottom: 10px;
+        }
+
+        .fitness-explanation p {
+            color: #0f0888;
+            margin-bottom: 8px;
+        }
+
+        .fitness-explanation strong {
+            color: #0f0;
+        }
+
+        .winner-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-left: 10px;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px #ffd700; }
+            50% { box-shadow: 0 0 20px #ffd700; }
+        }
+
+        .gene-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #0d0d0d;
+            border-radius: 5px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 4px;
+            border-radius: 2px;
         }
 
         .loading {
@@ -133,6 +308,26 @@
             font-size: 0.85em;
             margin-top: 10px;
         }
+
+        .vs-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            color: #0f0;
+            font-weight: bold;
+            text-shadow: 0 0 10px #0f0;
+        }
+
+        @media (max-width: 900px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .circular-genome {
+                width: 250px;
+                height: 250px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -142,6 +337,90 @@
             <p>Emergent Gene Regulatory Networks in Distributed Alife</p>
         </div>
 
+        <!-- Genome Comparison Section -->
+        <div class="card" style="margin-bottom: 20px;">
+            <h2>🏆 Top Genome vs Average - Why One Wins</h2>
+            <div id="comparisonLoading" class="loading">Analyzing genomes...</div>
+            <div id="comparisonContent" style="display: none;">
+                <div class="comparison-grid">
+                    <!-- Top Genome -->
+                    <div>
+                        <h3>🥇 Best Performer <span id="topBadge"></span></h3>
+                        <div class="stat-grid" style="margin-bottom: 15px;">
+                            <div class="stat">
+                                <div class="stat-label">Fitness</div>
+                                <div class="stat-value" id="topFitness2">-</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-label">Genes</div>
+                                <div class="stat-value" id="topGenes">-</div>
+                            </div>
+                        </div>
+
+                        <!-- Circular Genome Visualization -->
+                        <div class="genome-viz">
+                            <svg class="circular-genome" id="topGenomeSvg" viewBox="0 0 300 300"></svg>
+                        </div>
+
+                        <!-- Phenotype Breakdown -->
+                        <div class="phenotype-bars" id="topPhenotype"></div>
+                    </div>
+
+                    <!-- Average Genome -->
+                    <div>
+                        <h3>📊 Average Performer</h3>
+                        <div class="stat-grid" style="margin-bottom: 15px;">
+                            <div class="stat">
+                                <div class="stat-label">Fitness</div>
+                                <div class="stat-value" id="avgFitness2">-</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-label">Genes</div>
+                                <div class="stat-value" id="avgGenes">-</div>
+                            </div>
+                        </div>
+
+                        <!-- Circular Genome Visualization -->
+                        <div class="genome-viz">
+                            <svg class="circular-genome" id="avgGenomeSvg" viewBox="0 0 300 300"></svg>
+                        </div>
+
+                        <!-- Phenotype Breakdown -->
+                        <div class="phenotype-bars" id="avgPhenotype"></div>
+                    </div>
+                </div>
+
+                <!-- Gene Legend -->
+                <div class="gene-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff6b6b;"></div>
+                        <span>Speed Genes</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4ecdc4;"></div>
+                        <span>Turn Rate Genes</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ffe66d;"></div>
+                        <span>Phototaxis Genes</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #95e1d3;"></div>
+                        <span>Efficiency Genes ⭐</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f38181; border: 1px dashed #fff;"></div>
+                        <span>Regulatory Genes</span>
+                    </div>
+                </div>
+
+                <!-- Fitness Explanation -->
+                <div class="fitness-explanation" id="fitnessExplanation"></div>
+            </div>
+            <div id="comparisonError" class="error" style="display: none;"></div>
+        </div>
+
+        <!-- Original Dashboard Content -->
         <div class="grid">
             <div class="card">
                 <h2>📊 Pool Status</h2>
@@ -193,6 +472,175 @@
         function formatNumber(num, decimals = 2) {
             if (num === null || num === undefined || isNaN(num)) return '-';
             return num.toFixed(decimals);
+        }
+
+        function drawCircularGenome(svgId, genome, genes) {
+            const svg = document.getElementById(svgId);
+            svg.innerHTML = '';
+
+            const cx = 150, cy = 150, radius = 120;
+
+            // Draw outer circle (genome)
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', cx);
+            circle.setAttribute('cy', cy);
+            circle.setAttribute('r', radius);
+            circle.setAttribute('class', 'genome-circle');
+            svg.appendChild(circle);
+
+            // Draw genes as arcs
+            const genomeLength = genome.length;
+            genes.forEach((gene, idx) => {
+                // Find gene position in genome (simplified - we don't have exact position from API)
+                // Use index as approximate position
+                const startAngle = (idx / genes.length) * 2 * Math.PI - Math.PI / 2;
+                const endAngle = ((idx + 0.8) / genes.length) * 2 * Math.PI - Math.PI / 2;
+
+                const startX = cx + radius * Math.cos(startAngle);
+                const startY = cy + radius * Math.sin(startAngle);
+                const endX = cx + radius * Math.cos(endAngle);
+                const endY = cy + radius * Math.sin(endAngle);
+
+                const largeArcFlag = endAngle - startAngle > Math.PI ? 1 : 0;
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                const d = `M ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}`;
+                path.setAttribute('d', d);
+                path.setAttribute('class', `gene-arc ${gene.trait_name}${gene.regulatory ? ' regulatory' : ''}`);
+
+                // Add tooltip
+                const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                title.textContent = `${gene.trait_name.toUpperCase()}\nLength: ${gene.length}\nMagnitude: ${gene.magnitude.toFixed(2)}${gene.regulatory ? '\nREGULATORY' : ''}`;
+                path.appendChild(title);
+
+                svg.appendChild(path);
+            });
+        }
+
+        function createPhenotypeBar(trait, value, maxValue, description) {
+            const percentage = (value / maxValue) * 100;
+            return `
+                <div class="phenotype-row">
+                    <div class="phenotype-label">
+                        <span>${trait}</span>
+                        <span>${value.toFixed(3)}</span>
+                    </div>
+                    <div class="phenotype-bar-bg">
+                        <div class="phenotype-bar" style="width: ${percentage}%">
+                            ${percentage > 15 ? percentage.toFixed(0) + '%' : ''}
+                        </div>
+                    </div>
+                    <div style="color: #0f0666; font-size: 0.85em; margin-top: 3px;">${description}</div>
+                </div>
+            `;
+        }
+
+        async function updateComparison() {
+            try {
+                const response = await fetch('/api/compare_genomes');
+                const data = await response.json();
+
+                if (data.error) {
+                    document.getElementById('comparisonError').textContent = data.error;
+                    document.getElementById('comparisonError').style.display = 'block';
+                    return;
+                }
+
+                const top = data.top;
+                const avg = data.average;
+
+                // Update stats
+                document.getElementById('topFitness2').textContent = formatNumber(top.fitness);
+                document.getElementById('topGenes').textContent = top.analysis.gene_count;
+
+                if (avg) {
+                    document.getElementById('avgFitness2').textContent = formatNumber(avg.fitness);
+                    document.getElementById('avgGenes').textContent = avg.analysis.gene_count;
+                }
+
+                // Draw circular genomes
+                drawCircularGenome('topGenomeSvg', top.genome, top.analysis.genes);
+                if (avg) {
+                    drawCircularGenome('avgGenomeSvg', avg.genome, avg.analysis.genes);
+                }
+
+                // Draw phenotype bars
+                const topP = top.analysis.phenotype;
+                const topPhenotypeHtml = `
+                    ${createPhenotypeBar('⚡ Speed', topP.speed, 3, 'Movement rate (0-3 px/tick)')}
+                    ${createPhenotypeBar('🔄 Turn Rate', topP.turn_rate, 0.5, 'Turning ability (0-0.5 rad/tick)')}
+                    ${createPhenotypeBar('☀️ Phototaxis', (topP.phototaxis + 1) / 2, 1, 'Light seeking (-1=avoid, +1=seek)')}
+                    ${createPhenotypeBar('⭐ Efficiency', topP.efficiency, 1, 'Resource conversion (KEY FITNESS DRIVER!)')}
+                `;
+                document.getElementById('topPhenotype').innerHTML = topPhenotypeHtml;
+
+                if (avg) {
+                    const avgP = avg.analysis.phenotype;
+                    const avgPhenotypeHtml = `
+                        ${createPhenotypeBar('⚡ Speed', avgP.speed, 3, 'Movement rate (0-3 px/tick)')}
+                        ${createPhenotypeBar('🔄 Turn Rate', avgP.turn_rate, 0.5, 'Turning ability (0-0.5 rad/tick)')}
+                        ${createPhenotypeBar('☀️ Phototaxis', (avgP.phototaxis + 1) / 2, 1, 'Light seeking (-1=avoid, +1=seek)')}
+                        ${createPhenotypeBar('⭐ Efficiency', avgP.efficiency, 1, 'Resource conversion (KEY FITNESS DRIVER!)')}
+                    `;
+                    document.getElementById('avgPhenotype').innerHTML = avgPhenotypeHtml;
+                }
+
+                // Generate fitness explanation
+                let explanation = '<h4>💡 Why the Winner Has Higher Fitness</h4>';
+
+                const efficiencyDiff = topP.efficiency - (avg ? avg.analysis.phenotype.efficiency : 0);
+                const fitnessDiff = top.fitness - (avg ? avg.fitness : 0);
+
+                if (avg) {
+                    // Handle zero fitness case gracefully
+                    if (avg.fitness > 0) {
+                        const percentHigher = (fitnessDiff / avg.fitness * 100);
+                        explanation += `<p><strong>Fitness Gap:</strong> ${formatNumber(fitnessDiff)} (${formatNumber(percentHigher, 1)}% higher)</p>`;
+                    } else {
+                        explanation += `<p><strong>Fitness Gap:</strong> ${formatNumber(fitnessDiff)} (average genome has zero fitness)</p>`;
+                    }
+
+                    if (efficiencyDiff > 0.1) {
+                        explanation += `<p><strong>🎯 Key Factor: Efficiency!</strong> The top genome has ${formatNumber(efficiencyDiff * 100, 1)}% higher efficiency. Since fitness = cumulative energy harvested, and energy gain = light × efficiency × nutrients, higher efficiency directly increases fitness.</p>`;
+                    } else {
+                        explanation += `<p><strong>Efficiency is similar</strong> (${formatNumber(topP.efficiency, 3)} vs ${formatNumber(avg.analysis.phenotype.efficiency, 3)}). The fitness difference may come from age (older organisms accumulate more total energy) or better resource positioning.</p>`;
+                    }
+
+                    // Compare gene counts
+                    const geneDiff = top.analysis.gene_count - avg.analysis.gene_count;
+                    if (Math.abs(geneDiff) > 2) {
+                        explanation += `<p><strong>Gene Expression:</strong> Top genome has ${geneDiff > 0 ? 'more' : 'fewer'} active genes (${top.analysis.gene_count} vs ${avg.analysis.gene_count}). ${geneDiff > 0 ? 'More genes can provide richer phenotypes.' : 'Simpler genomes can be more efficient.'}</p>`;
+                    }
+
+                    // Efficiency genes count
+                    const topEffGenes = top.analysis.genes.filter(g => g.trait_name === 'efficiency' && !g.regulatory).length;
+                    const avgEffGenes = avg.analysis.genes.filter(g => g.trait_name === 'efficiency' && !g.regulatory).length;
+                    if (topEffGenes > avgEffGenes) {
+                        explanation += `<p><strong>Efficiency Genes:</strong> Top genome has ${topEffGenes} efficiency genes vs ${avgEffGenes} in average. Multiple efficiency genes compound the advantage!</p>`;
+                    }
+                } else {
+                    explanation += `<p><strong>Efficiency:</strong> ${formatNumber(topP.efficiency * 100, 1)}% - This is the primary driver of fitness.</p>`;
+                    explanation += `<p>Organisms gain energy via: <code>gain = light × efficiency × nutrients × 0.5</code></p>`;
+                }
+
+                explanation += `<p><strong>Remember:</strong> Fitness is cumulative energy harvested over an organism's lifetime. Higher efficiency = more energy per tick = higher total fitness!</p>`;
+
+                document.getElementById('fitnessExplanation').innerHTML = explanation;
+
+                // Show winner badge
+                document.getElementById('topBadge').innerHTML = '<span class="winner-badge">WINNER</span>';
+
+                // Show comparison content
+                document.getElementById('comparisonLoading').style.display = 'none';
+                document.getElementById('comparisonContent').style.display = 'block';
+                document.getElementById('comparisonError').style.display = 'none';
+
+            } catch (error) {
+                console.error('Failed to fetch comparison:', error);
+                document.getElementById('comparisonError').textContent = 'Failed to load genome comparison: ' + error.message;
+                document.getElementById('comparisonError').style.display = 'block';
+                document.getElementById('comparisonLoading').style.display = 'none';
+            }
         }
 
         async function updatePoolStatus() {
@@ -343,6 +791,7 @@
 
         async function updateAll() {
             await Promise.all([
+                updateComparison(),
                 updatePoolStatus(),
                 updateGeneStats()
             ]);
