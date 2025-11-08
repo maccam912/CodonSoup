@@ -21,7 +21,7 @@ from world import World
 
 # Client identification
 CLIENT_ID = f"soup_{int(time.time()) % 100000}"
-DEFAULT_SERVER = "http://localhost:8080"
+DEFAULT_SERVER = "https://codonsoup.rackspace.koski.co"
 
 
 def create_starter_genome():
