@@ -92,6 +92,99 @@ def extract_genes(genome, threshold=0.95):
     return genes
 
 
+def interpret_gene(gene_seq):
+    """
+    Convert a gene sequence into a protein effect.
+
+    Protein properties:
+    - trait: Which phenotype trait this affects (0-3)
+    - magnitude: Strength and direction of effect [-1, 1]
+    - regulatory: Whether this gene modifies expression threshold
+
+    Args:
+        gene_seq: List of codon values representing a gene
+
+    Returns:
+        Dict with keys: trait, magnitude, regulatory, length
+    """
+    if not gene_seq:
+        return None
+
+    # Hash the gene content to determine which trait it affects
+    content_hash = int(sum(gene_seq) * 1000) % 4  # Traits: 0=speed, 1=turn, 2=phototaxis, 3=efficiency
+    magnitude = np.mean(gene_seq) * 2 - 1
+    is_regulatory = any(val < 0.1 or val > 0.9 for val in gene_seq)
+
+    return {"trait": content_hash, "magnitude": magnitude, "regulatory": is_regulatory, "length": len(gene_seq)}
+
+
+def analyze_genome(genome):
+    """
+    Perform comprehensive analysis of a genome.
+
+    Returns detailed information about genes, phenotype, and fitness potential.
+    """
+    if not genome:
+        return None
+
+    # Extract genes with two-pass expression (mimics organism.py)
+    threshold = 0.95
+    genes = extract_genes(genome, threshold)
+
+    # First pass: check for regulatory genes
+    for gene in genes:
+        protein = interpret_gene(gene)
+        if protein and protein["regulatory"] and protein["trait"] == 3:
+            threshold = max(0.7, min(0.99, threshold - protein["magnitude"] * 0.1))
+
+    # Second pass: express with adjusted threshold
+    genes = extract_genes(genome, threshold)
+
+    # Calculate phenotype
+    phenotype_raw = np.zeros(4, dtype=np.float32)
+    gene_details = []
+
+    for i, gene in enumerate(genes):
+        protein = interpret_gene(gene)
+        if protein:
+            gene_info = {
+                "index": i,
+                "length": len(gene),
+                "trait": protein["trait"],
+                "trait_name": ["speed", "turn_rate", "phototaxis", "efficiency"][protein["trait"]],
+                "magnitude": float(protein["magnitude"]),
+                "regulatory": protein["regulatory"],
+                "sequence": gene,
+            }
+            gene_details.append(gene_info)
+
+            if not protein["regulatory"]:
+                phenotype_raw[protein["trait"]] += protein["magnitude"]
+
+    # Clamp and scale phenotype (matching organism.py logic)
+    phenotype_raw = np.clip(phenotype_raw, -2, 2)
+
+    phenotype = {
+        "speed": float((phenotype_raw[0] + 2) / 4 * 3),
+        "turn_rate": float((phenotype_raw[1] + 2) / 4 * 0.5),
+        "phototaxis": float(np.tanh(phenotype_raw[2])),
+        "efficiency": float((phenotype_raw[3] + 2) / 4),
+    }
+
+    # Estimate fitness potential based on efficiency
+    # Efficiency is the primary driver of fitness
+    fitness_potential = phenotype["efficiency"]
+
+    return {
+        "genome_length": len(genome),
+        "gene_count": len(gene_details),
+        "genes": gene_details,
+        "phenotype": phenotype,
+        "expression_threshold": float(threshold),
+        "fitness_potential": float(fitness_potential),
+    }
+
+
 @app.route("/")
 def dashboard():
     """Serve the web dashboard"""
@@ -276,6 +369,104 @@ def pool_status():
         )
 
     return jsonify({"total_genomes": 0, "avg_fitness": 0, "avg_length": 0, "top_fitness": 0})
+
+
+@app.route("/api/genome_analysis/<genome_type>")
+def genome_analysis(genome_type):
+    """
+    Get detailed analysis of a genome.
+
+    Args:
+        genome_type: "top", "average", or "random"
+
+    Returns:
+        JSON: {
+            "genome": [...],
+            "fitness": float,
+            "analysis": {...}
+        }
+    """
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    if genome_type == "top":
+        c.execute("SELECT genome, fitness FROM genomes ORDER BY fitness DESC LIMIT 1")
+    elif genome_type == "average":
+        # Get median fitness genome
+        c.execute("SELECT COUNT(*) FROM genomes")
+        count = c.fetchone()[0]
+        if count > 0:
+            offset = count // 2
+            c.execute("SELECT genome, fitness FROM genomes ORDER BY fitness LIMIT 1 OFFSET ?", (offset,))
+        else:
+            conn.close()
+            return jsonify({"error": "No genomes in pool"}), 404
+    elif genome_type == "random":
+        c.execute("SELECT genome, fitness FROM genomes ORDER BY RANDOM() LIMIT 1")
+    else:
+        conn.close()
+        return jsonify({"error": "Invalid genome_type"}), 400
+
+    row = c.fetchone()
+    conn.close()
+
+    if not row:
+        return jsonify({"error": "No genome found"}), 404
+
+    genome = json.loads(row[0])
+    fitness = row[1]
+    analysis = analyze_genome(genome)
+
+    return jsonify({"genome": genome, "fitness": float(fitness), "analysis": analysis})
+
+
+@app.route("/api/compare_genomes")
+def compare_genomes():
+    """
+    Compare top performing genome with average genome.
+
+    Returns:
+        JSON: {
+            "top": {...},
+            "average": {...}
+        }
+    """
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    # Get top genome
+    c.execute("SELECT genome, fitness FROM genomes ORDER BY fitness DESC LIMIT 1")
+    top_row = c.fetchone()
+
+    # Get median fitness genome
+    c.execute("SELECT COUNT(*) FROM genomes")
+    count = c.fetchone()[0]
+    if count > 1:
+        offset = count // 2
+        c.execute("SELECT genome, fitness FROM genomes ORDER BY fitness LIMIT 1 OFFSET ?", (offset,))
+        avg_row = c.fetchone()
+    else:
+        avg_row = None
+
+    conn.close()
+
+    if not top_row:
+        return jsonify({"error": "No genomes in pool"}), 404
+
+    top_genome = json.loads(top_row[0])
+    top_fitness = top_row[1]
+    top_analysis = analyze_genome(top_genome)
+
+    result = {"top": {"genome": top_genome, "fitness": float(top_fitness), "analysis": top_analysis}}
+
+    if avg_row:
+        avg_genome = json.loads(avg_row[0])
+        avg_fitness = avg_row[1]
+        avg_analysis = analyze_genome(avg_genome)
+
+        result["average"] = {"genome": avg_genome, "fitness": float(avg_fitness), "analysis": avg_analysis}
+
+    return jsonify(result)
 
 
 @app.route("/health")
