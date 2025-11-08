@@ -180,7 +180,7 @@ class TestServerAPI:
 
     def test_pool_pruning(self, client):
         """Test that pool keeps only top genomes"""
-        # This test would require submitting >2000 genomes
+        # This test would require submitting >MAX_POOL_SIZE genomes
         # For practical testing, we'll submit a few and verify they're kept
         for i in range(10):
             genome = [0.5] * 100
@@ -195,7 +195,7 @@ class TestServerAPI:
         response = client.get("/api/pool_status")
         data = json.loads(response.data)
 
-        # All 10 should be kept (under 2000 limit)
+        # All 10 should be kept (under MAX_POOL_SIZE limit)
         assert data["total_genomes"] == 10
 
     def test_genome_selection_bias(self, client):
