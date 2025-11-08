@@ -61,22 +61,19 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 git clone https://github.com/maccam912/CodonSoup.git
 cd CodonSoup
 
-# Install dependencies with uv
-uv pip install -e ".[server,client]"
-
-# For development (includes testing and linting tools)
-uv pip install -e ".[server,client,dev]"
+# Sync dependencies (creates .venv automatically)
+uv sync --all-extras
 
 # Set up pre-commit hooks (optional but recommended)
 make pre-commit
 
 # Terminal 1: Start server
 make server
-# or: cd server && python server.py
+# or: uv run python server/server.py
 
 # Terminal 2: Run client
 make client
-# or: cd client && python client.py --server=http://localhost:8080
+# or: uv run python client/client.py --server=http://localhost:8080
 ```
 
 ## 📊 Architecture
@@ -160,14 +157,14 @@ Each organism has 4 traits determined by gene expression:
 ```bash
 # Run all tests
 make test
-# or: pytest
+# or: uv run pytest
 
 # Run with coverage report
 make coverage
 # This generates an HTML report in htmlcov/index.html
 
 # Run specific test file
-pytest tests/client/test_organism.py -v
+uv run pytest tests/client/test_organism.py -v
 ```
 
 ### Code Quality
@@ -175,14 +172,14 @@ pytest tests/client/test_organism.py -v
 ```bash
 # Lint code with ruff
 make lint
-# or: ruff check .
+# or: uv run ruff check .
 
 # Auto-format code with ruff
 make format
-# or: ruff format . && ruff check --fix .
+# or: uv run ruff format . && uv run ruff check --fix .
 
 # Run pre-commit hooks manually
-pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 ### Pre-commit Hooks
@@ -194,7 +191,7 @@ The project uses pre-commit hooks to ensure code quality:
 Install hooks:
 ```bash
 make pre-commit
-# or: pre-commit install
+# or: uv run pre-commit install
 ```
 
 Once installed, hooks run automatically on `git commit`.

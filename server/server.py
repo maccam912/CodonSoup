@@ -7,12 +7,13 @@ This server manages a shared gene pool where clients can:
 - View real-time statistics on gene expression patterns
 """
 
-from flask import Flask, request, jsonify, render_template
-import sqlite3
 import json
 import os
+import sqlite3
 from collections import defaultdict
+
 import numpy as np
+from flask import Flask, jsonify, render_template, request
 
 DB_PATH = "data/soup.db"
 app = Flask(__name__)
@@ -23,14 +24,16 @@ def init_db():
     os.makedirs("data", exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("""CREATE TABLE IF NOT EXISTS genomes (
+    c.execute(
+        """CREATE TABLE IF NOT EXISTS genomes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         genome TEXT,
         fitness REAL,
         length INTEGER,
         client_id TEXT,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-    )""")
+    )"""
+    )
     conn.commit()
     conn.close()
 
@@ -136,23 +139,20 @@ def post_genome():
     # Insert new genome
     c.execute(
         "INSERT INTO genomes (genome, fitness, length, client_id) VALUES (?, ?, ?, ?)",
-        (
-            json.dumps(data["genome"]),
-            data["fitness"],
-            len(data["genome"]),
-            data.get("client_id", "anonymous")
-        )
+        (json.dumps(data["genome"]), data["fitness"], len(data["genome"]), data.get("client_id", "anonymous")),
     )
 
     # Prune pool to top 2000 genomes
-    c.execute("""
+    c.execute(
+        """
         DELETE FROM genomes
         WHERE id NOT IN (
             SELECT id FROM genomes
             ORDER BY fitness DESC
             LIMIT 2000
         )
-    """)
+    """
+    )
 
     conn.commit()
     conn.close()
@@ -185,13 +185,15 @@ def gene_stats():
     c = conn.cursor()
 
     # Get recent genomes
-    c.execute("""
+    c.execute(
+        """
         SELECT genome, fitness
         FROM genomes
         WHERE timestamp > datetime('now', '-6 hours')
         ORDER BY fitness DESC
         LIMIT 500
-    """)
+    """
+    )
     rows = c.fetchall()
     conn.close()
 
@@ -211,10 +213,7 @@ def gene_stats():
 
     # Compute statistics
     stats = {
-        str(length): {
-            "count": len(fitness_vals),
-            "avg_fitness": float(np.mean(fitness_vals))
-        }
+        str(length): {"count": len(fitness_vals), "avg_fitness": float(np.mean(fitness_vals))}
         for length, fitness_vals in active_genes.items()
     }
 
@@ -237,31 +236,30 @@ def pool_status():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
-    c.execute("""
+    c.execute(
+        """
         SELECT
             COUNT(*) as total,
             AVG(fitness) as avg_fitness,
             AVG(length) as avg_length,
             MAX(fitness) as top_fitness
         FROM genomes
-    """)
+    """
+    )
     row = c.fetchone()
     conn.close()
 
     if row and row[0] > 0:
-        return jsonify({
-            "total_genomes": row[0],
-            "avg_fitness": float(row[1] or 0),
-            "avg_length": float(row[2] or 0),
-            "top_fitness": float(row[3] or 0)
-        })
+        return jsonify(
+            {
+                "total_genomes": row[0],
+                "avg_fitness": float(row[1] or 0),
+                "avg_length": float(row[2] or 0),
+                "top_fitness": float(row[3] or 0),
+            }
+        )
 
-    return jsonify({
-        "total_genomes": 0,
-        "avg_fitness": 0,
-        "avg_length": 0,
-        "top_fitness": 0
-    })
+    return jsonify({"total_genomes": 0, "avg_fitness": 0, "avg_length": 0, "top_fitness": 0})
 
 
 @app.route("/health")

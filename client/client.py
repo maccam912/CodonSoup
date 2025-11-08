@@ -10,14 +10,14 @@ Connects to the CodonSoup server to participate in distributed evolution:
 """
 
 import argparse
-import time
-import requests
 import json
 import sys
-import numpy as np
-from world import World
-from organism import Organism, extract_genes
+import time
 
+import numpy as np
+import requests
+from organism import Organism, extract_genes
+from world import World
 
 # Client identification
 CLIENT_ID = f"soup_{int(time.time()) % 100000}"
@@ -36,9 +36,9 @@ def create_starter_genome():
     This gives evolution a foothold without biasing the outcome.
     """
     return (
-        [0.5] * 60 +                    # Junk DNA
-        [0.96, 0.4, 0.4, 0.4, 0.04] +   # Minimal gene
-        [0.5] * 40                       # More junk
+        [0.5] * 60  # Junk DNA
+        + [0.96, 0.4, 0.4, 0.4, 0.04]  # Minimal gene
+        + [0.5] * 40  # More junk
     )
 
 
@@ -54,10 +54,7 @@ def fetch_immigrant_genome(server_url, timeout=5):
         List of float values (genome), or None if fetch failed
     """
     try:
-        response = requests.get(
-            f"{server_url}/api/genome",
-            timeout=timeout
-        )
+        response = requests.get(f"{server_url}/api/genome", timeout=timeout)
         response.raise_for_status()
         data = response.json()
         return data.get("genome")
@@ -84,13 +81,7 @@ def submit_genome(server_url, genome, fitness, timeout=5):
     """
     try:
         response = requests.post(
-            f"{server_url}/api/genome",
-            json={
-                "genome": genome,
-                "fitness": fitness,
-                "client_id": CLIENT_ID
-            },
-            timeout=timeout
+            f"{server_url}/api/genome", json={"genome": genome, "fitness": fitness, "client_id": CLIENT_ID}, timeout=timeout
         )
         response.raise_for_status()
         return True
@@ -123,75 +114,50 @@ def run_generation(world, gen_num, ticks=300, verbose=True):
         # Progress updates
         if verbose and tick % 100 == 0 and tick > 0:
             stats = world.get_statistics()
-            print(f"   Tick {tick:3d}: "
-                  f"pop={stats['population']:3d}, "
-                  f"avg_energy={stats['avg_energy']:5.2f}, "
-                  f"avg_fitness={stats['avg_fitness']:6.2f}")
+            print(
+                f"   Tick {tick:3d}: "
+                f"pop={stats['population']:3d}, "
+                f"avg_energy={stats['avg_energy']:5.2f}, "
+                f"avg_fitness={stats['avg_fitness']:6.2f}"
+            )
 
     # Final statistics
     stats = world.get_statistics()
     if verbose:
-        print(f"   Final: pop={stats['population']}, "
-              f"avg_fitness={stats['avg_fitness']:.2f}")
+        print(f"   Final: pop={stats['population']}, " f"avg_fitness={stats['avg_fitness']:.2f}")
 
     # Get fittest organism
     fittest = world.get_fittest()
 
     if fittest and verbose:
-        print(f"   🏆 Fittest: fitness={fittest.fitness:.2f}, "
-              f"energy={fittest.energy:.2f}, "
-              f"genome_len={len(fittest.genome)}")
-        print(f"      Phenotype: speed={fittest.phenotype[0]:.2f}, "
-              f"turn={fittest.phenotype[1]:.2f}, "
-              f"photo={fittest.phenotype[2]:.2f}, "
-              f"eff={fittest.phenotype[3]:.2f}")
+        print(
+            f"   🏆 Fittest: fitness={fittest.fitness:.2f}, "
+            f"energy={fittest.energy:.2f}, "
+            f"genome_len={len(fittest.genome)}"
+        )
+        print(
+            f"      Phenotype: speed={fittest.phenotype[0]:.2f}, "
+            f"turn={fittest.phenotype[1]:.2f}, "
+            f"photo={fittest.phenotype[2]:.2f}, "
+            f"eff={fittest.phenotype[3]:.2f}"
+        )
 
         # Show gene expression
         genes = extract_genes(fittest.genome)
-        print(f"      Active genes: {len(genes)}, "
-              f"lengths: {[len(g) for g in genes]}")
+        print(f"      Active genes: {len(genes)}, " f"lengths: {[len(g) for g in genes]}")
 
     return fittest
 
 
 def main():
     """Main client loop"""
-    parser = argparse.ArgumentParser(
-        description="CodonSoup Client - Distributed Artificial Life Evolution"
-    )
-    parser.add_argument(
-        "--server",
-        default=DEFAULT_SERVER,
-        help=f"Server URL (default: {DEFAULT_SERVER})"
-    )
-    parser.add_argument(
-        "--generations",
-        type=int,
-        default=50,
-        help="Number of generations to run (default: 50)"
-    )
-    parser.add_argument(
-        "--ticks",
-        type=int,
-        default=300,
-        help="Simulation ticks per generation (default: 300)"
-    )
-    parser.add_argument(
-        "--population",
-        type=int,
-        default=30,
-        help="Initial population size (default: 30)"
-    )
-    parser.add_argument(
-        "--quiet",
-        action="store_true",
-        help="Reduce output verbosity"
-    )
-    parser.add_argument(
-        "--offline",
-        action="store_true",
-        help="Run without server connection (local evolution only)"
-    )
+    parser = argparse.ArgumentParser(description="CodonSoup Client - Distributed Artificial Life Evolution")
+    parser.add_argument("--server", default=DEFAULT_SERVER, help=f"Server URL (default: {DEFAULT_SERVER})")
+    parser.add_argument("--generations", type=int, default=50, help="Number of generations to run (default: 50)")
+    parser.add_argument("--ticks", type=int, default=300, help="Simulation ticks per generation (default: 300)")
+    parser.add_argument("--population", type=int, default=30, help="Initial population size (default: 30)")
+    parser.add_argument("--quiet", action="store_true", help="Reduce output verbosity")
+    parser.add_argument("--offline", action="store_true", help="Run without server connection (local evolution only)")
 
     args = parser.parse_args()
 
@@ -232,22 +198,13 @@ def main():
             world.add_organism(Organism(seed_genome, pos))
 
         # Run generation
-        fittest = run_generation(
-            world,
-            gen,
-            ticks=args.ticks,
-            verbose=not args.quiet
-        )
+        fittest = run_generation(world, gen, ticks=args.ticks, verbose=not args.quiet)
 
         # Submit fittest genome back to pool
         if fittest and not args.offline:
-            success = submit_genome(
-                args.server,
-                fittest.genome,
-                fittest.fitness
-            )
+            success = submit_genome(args.server, fittest.genome, fittest.fitness)
             if success:
-                print(f"📤 Submitted genome to pool")
+                print("📤 Submitted genome to pool")
 
         # Brief pause between generations
         if not args.quiet:
@@ -265,5 +222,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

@@ -5,14 +5,18 @@ but the project now uses **uv** with `pyproject.toml` for dependency management.
 
 ## For New Users
 
-Use `uv` for installation:
+Use `uv` for dependency management:
 
 ```bash
 # Install uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install project dependencies
-uv pip install -e ".[server,client,dev]"
+# Sync project dependencies (creates .venv automatically)
+uv sync --all-extras
+
+# Run commands with uv run
+uv run python server/server.py
+uv run pytest
 ```
 
 ## Why uv?
@@ -36,6 +40,6 @@ All dependencies are now defined in `pyproject.toml`:
 To update a dependency:
 
 1. Edit `pyproject.toml`
-2. Run `uv pip install -e ".[server,client,dev]"`
-3. Test the changes
-4. Commit `pyproject.toml`
+2. Run `uv sync --all-extras`
+3. Test the changes with `uv run pytest`
+4. Commit `pyproject.toml` and `uv.lock` (if changed)

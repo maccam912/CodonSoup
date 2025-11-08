@@ -28,28 +28,28 @@ help:
 	@echo "  make clean         - Remove temporary files"
 
 install:
-	uv pip install -e ".[server,client]"
+	uv sync --extra server --extra client
 
 install-dev:
-	uv pip install -e ".[server,client,dev]"
+	uv sync --all-extras
 
 pre-commit:
-	pre-commit install
+	uv run pre-commit install
 
 test:
-	pytest
+	uv run pytest
 
 coverage:
-	pytest --cov=client --cov=server --cov-report=html --cov-report=term-missing
+	uv run pytest --cov=client --cov=server --cov-report=html --cov-report=term-missing
 	@echo ""
 	@echo "Coverage report generated in htmlcov/index.html"
 
 lint:
-	ruff check .
+	uv run ruff check .
 
 format:
-	ruff format .
-	ruff check --fix .
+	uv run ruff format .
+	uv run ruff check --fix .
 
 clean:
 	find . -type f -name '*.pyc' -delete
@@ -61,12 +61,13 @@ clean:
 	rm -rf .ruff_cache
 	rm -rf dist
 	rm -rf build
+	rm -rf .venv
 
 server:
-	cd server && python server.py
+	uv run python server/server.py
 
 client:
-	cd client && python client.py --server=http://localhost:8080
+	uv run python client/client.py --server=http://localhost:8080
 
 docker-build:
 	docker-compose build

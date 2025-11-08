@@ -2,16 +2,17 @@
 Tests for world simulation environment
 """
 
-import pytest
-import numpy as np
-import sys
 import os
+import sys
+
+import numpy as np
+import pytest
 
 # Add client to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../client'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../client"))
 
-from world import World
 from organism import Organism
+from world import World
 
 
 class TestWorld:

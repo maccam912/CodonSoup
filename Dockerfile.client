@@ -12,12 +12,12 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 COPY pyproject.toml .
 COPY client/ ./client/
 
-# Install dependencies using uv
-RUN uv pip install --system --no-cache ".[client]"
+# Sync dependencies using uv
+RUN uv sync --frozen --no-dev --extra client
 
 # Set working directory to client
 WORKDIR /app/client
 
 # Default command (can be overridden)
-ENTRYPOINT ["python", "client.py"]
+ENTRYPOINT ["uv", "run", "python", "client.py"]
 CMD ["--server=http://server:8080", "--generations=50"]

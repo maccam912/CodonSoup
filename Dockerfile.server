@@ -12,8 +12,8 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 COPY pyproject.toml .
 COPY server/ ./server/
 
-# Install dependencies using uv
-RUN uv pip install --system --no-cache ".[server]"
+# Sync dependencies using uv
+RUN uv sync --frozen --no-dev --extra server
 
 # Create data directory
 RUN mkdir -p /app/data
@@ -26,7 +26,7 @@ WORKDIR /app/server
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8080/health')" || exit 1
+    CMD uv run python -c "import requests; requests.get('http://localhost:8080/health')" || exit 1
 
 # Run server
-CMD ["python", "server.py"]
+CMD ["uv", "run", "python", "server.py"]

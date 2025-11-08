@@ -2,15 +2,16 @@
 Tests for organism gene expression and evolution
 """
 
-import pytest
-import numpy as np
-import sys
 import os
+import sys
+
+import numpy as np
+import pytest
 
 # Add client to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../client'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../client"))
 
-from organism import extract_genes, interpret_gene, Organism
+from organism import Organism, extract_genes, interpret_gene
 
 
 class TestGeneExtraction:
@@ -52,9 +53,9 @@ class TestGeneExtraction:
     def test_multiple_genes(self):
         """Test genome with multiple genes"""
         genome = (
-            [0.96, 0.1, 0.2, 0.3, 0.04] +  # Gene 1 (length 3)
-            [0.5, 0.5] +                    # Junk
-            [0.96, 0.7, 0.8, 0.9, 0.6, 0.04]  # Gene 2 (length 4)
+            [0.96, 0.1, 0.2, 0.3, 0.04]  # Gene 1 (length 3)
+            + [0.5, 0.5]  # Junk
+            + [0.96, 0.7, 0.8, 0.9, 0.6, 0.04]  # Gene 2 (length 4)
         )
         genes = extract_genes(genome)
 
@@ -266,7 +267,7 @@ class TestOrganism:
         org = Organism(genome, [60, 60])
 
         # Expression threshold should be modified
-        assert hasattr(org, 'expression_threshold')
+        assert hasattr(org, "expression_threshold")
         # Threshold could be different from default 0.95
         # Hard to test exact value due to complex logic
 

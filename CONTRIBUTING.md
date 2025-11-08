@@ -23,12 +23,12 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 git clone https://github.com/YOUR_USERNAME/CodonSoup.git
 cd CodonSoup
 
-# Install all dependencies with uv
-uv pip install -e ".[server,client,dev]"
+# Sync all dependencies with uv (creates .venv automatically)
+uv sync --all-extras
 
 # Set up pre-commit hooks (recommended)
 make pre-commit
-# or: pre-commit install
+# or: uv run pre-commit install
 ```
 
 ## Code Style
@@ -62,14 +62,14 @@ Pre-commit hooks will automatically run these checks.
 ```bash
 # Run all tests
 make test
-# or: pytest
+# or: uv run pytest
 
 # Run with coverage report
 make coverage
 # This generates htmlcov/index.html
 
 # Run specific test file
-pytest tests/client/test_organism.py -v
+uv run pytest tests/client/test_organism.py -v
 ```
 
 ## Pull Request Guidelines

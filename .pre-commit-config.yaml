@@ -22,8 +22,8 @@ repos:
     hooks:
       - id: pytest
         name: pytest
-        entry: pytest
+        entry: uv run pytest
         language: system
         pass_filenames: false
         always_run: true
-        args: [--cov=client, --cov=server, -v]
+        args: [-v, --tb=short, -x]

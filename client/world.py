@@ -9,7 +9,6 @@ Implements:
 """
 
 import numpy as np
-from organism import Organism
 
 
 class World:
@@ -101,10 +100,7 @@ class World:
         self.tick += 1
 
         # Slowly regenerate nutrients everywhere
-        self.nutrient_map = np.clip(
-            self.nutrient_map + 0.002,
-            0, 1
-        )
+        self.nutrient_map = np.clip(self.nutrient_map + 0.002, 0, 1)
 
         # Occasional light flicker (simulates changing conditions)
         if np.random.rand() < 0.05:
@@ -168,7 +164,7 @@ class World:
                 "avg_energy": 0,
                 "avg_genome_length": 0,
                 "avg_active_genes": 0,
-                "max_fitness": 0
+                "max_fitness": 0,
             }
 
         fitnesses = [o.fitness for o in self.organisms]
@@ -183,12 +179,10 @@ class World:
             "avg_genome_length": np.mean(genome_lengths),
             "avg_active_genes": np.mean(active_genes),
             "max_fitness": np.max(fitnesses),
-            "tick": self.tick
+            "tick": self.tick,
         }
 
     def __repr__(self):
         """String representation for debugging"""
         stats = self.get_statistics()
-        return (f"World(tick={self.tick}, "
-                f"population={stats['population']}, "
-                f"avg_fitness={stats['avg_fitness']:.2f})")
+        return f"World(tick={self.tick}, " f"population={stats['population']}, " f"avg_fitness={stats['avg_fitness']:.2f})"

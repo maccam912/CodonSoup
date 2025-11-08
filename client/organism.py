@@ -9,8 +9,9 @@ Implements:
 - Mutation operators (point, insertion, deletion, duplication)
 """
 
-import numpy as np
 import uuid
+
+import numpy as np
 
 
 def extract_genes(genome, threshold=0.95):
@@ -100,12 +101,7 @@ def interpret_gene(gene_seq):
     # They can modify expression thresholds, creating epistatic effects
     is_regulatory = any(val < 0.1 or val > 0.9 for val in gene_seq)
 
-    return {
-        "trait": content_hash,
-        "magnitude": magnitude,
-        "regulatory": is_regulatory,
-        "length": len(gene_seq)
-    }
+    return {"trait": content_hash, "magnitude": magnitude, "regulatory": is_regulatory, "length": len(gene_seq)}
 
 
 class Organism:
@@ -332,7 +328,7 @@ class Organism:
             if len(child_genome) >= 10:
                 seg_len = np.random.randint(5, min(16, len(child_genome) // 2))
                 start = np.random.randint(0, len(child_genome) - seg_len)
-                segment = child_genome[start:start + seg_len]
+                segment = child_genome[start : start + seg_len]
                 # Insert at random location
                 insert_pos = np.random.randint(0, len(child_genome))
                 child_genome[insert_pos:insert_pos] = segment
@@ -349,8 +345,10 @@ class Organism:
 
     def __repr__(self):
         """String representation for debugging"""
-        return (f"Organism(id={self.id}, "
-                f"energy={self.energy:.1f}, "
-                f"fitness={self.fitness:.1f}, "
-                f"genome_len={len(self.genome)}, "
-                f"genes={self.active_gene_count})")
+        return (
+            f"Organism(id={self.id}, "
+            f"energy={self.energy:.1f}, "
+            f"fitness={self.fitness:.1f}, "
+            f"genome_len={len(self.genome)}, "
+            f"genes={self.active_gene_count})"
+        )
