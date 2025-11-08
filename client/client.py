@@ -11,6 +11,7 @@ Connects to the CodonSoup server to participate in distributed evolution:
 
 import argparse
 import json
+import random
 import sys
 import time
 
@@ -155,9 +156,11 @@ def main():
     """Main client loop"""
     parser = argparse.ArgumentParser(description="CodonSoup Client - Distributed Artificial Life Evolution")
     parser.add_argument("--server", default=DEFAULT_SERVER, help=f"Server URL (default: {DEFAULT_SERVER})")
-    parser.add_argument("--generations", type=int, default=50, help="Number of generations to run (default: 50)")
+    parser.add_argument("--generations", type=int, default=1000, help="Number of generations to run (default: 1000)")
     parser.add_argument("--ticks", type=int, default=300, help="Simulation ticks per generation (default: 300)")
     parser.add_argument("--population", type=int, default=30, help="Initial population size (default: 30)")
+    parser.add_argument("--min-delay", type=int, default=30, help="Minimum delay between generations in seconds (default: 30)")
+    parser.add_argument("--max-delay", type=int, default=90, help="Maximum delay between generations in seconds (default: 90)")
     parser.add_argument("--quiet", action="store_true", help="Reduce output verbosity")
     parser.add_argument("--offline", action="store_true", help="Run without server connection (local evolution only)")
 
@@ -169,9 +172,17 @@ def main():
     print(f"   Generations: {args.generations}")
     print(f"   Ticks/gen: {args.ticks}")
     print(f"   Initial pop: {args.population}")
+    print(f"   Delay between gens: {args.min_delay}-{args.max_delay}s")
 
     if args.offline:
         print("   Mode: OFFLINE (no server connection)")
+
+    # Add initial random delay to spread out client start times
+    if not args.offline:
+        initial_delay = random.randint(0, args.max_delay)
+        print(f"\n⏱️  Initial delay: {initial_delay}s (spreading client load)")
+        time.sleep(initial_delay)
+
     print()
 
     # Main evolution loop
@@ -208,9 +219,11 @@ def main():
             if success:
                 print("📤 Submitted genome to pool")
 
-        # Brief pause between generations
+        # Randomized delay between generations to spread server load
+        delay = random.randint(args.min_delay, args.max_delay)
         if not args.quiet:
-            time.sleep(1)
+            print(f"⏱️  Waiting {delay}s until next generation...")
+        time.sleep(delay)
 
     print("\n✅ Evolution complete!")
 
