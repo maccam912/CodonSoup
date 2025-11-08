@@ -85,7 +85,9 @@ def submit_genome(server_url, genome, fitness, timeout=5):
         fitness_float = float(fitness)
 
         response = requests.post(
-            f"{server_url}/api/genome", json={"genome": genome_list, "fitness": fitness_float, "client_id": CLIENT_ID}, timeout=timeout
+            f"{server_url}/api/genome",
+            json={"genome": genome_list, "fitness": fitness_float, "client_id": CLIENT_ID},
+            timeout=timeout,
         )
         response.raise_for_status()
         return True
