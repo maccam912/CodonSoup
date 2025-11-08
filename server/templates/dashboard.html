@@ -592,7 +592,13 @@
                 const fitnessDiff = top.fitness - (avg ? avg.fitness : 0);
 
                 if (avg) {
-                    explanation += `<p><strong>Fitness Gap:</strong> ${formatNumber(fitnessDiff)} (${formatNumber((fitnessDiff / avg.fitness * 100), 1)}% higher)</p>`;
+                    // Handle zero fitness case gracefully
+                    if (avg.fitness > 0) {
+                        const percentHigher = (fitnessDiff / avg.fitness * 100);
+                        explanation += `<p><strong>Fitness Gap:</strong> ${formatNumber(fitnessDiff)} (${formatNumber(percentHigher, 1)}% higher)</p>`;
+                    } else {
+                        explanation += `<p><strong>Fitness Gap:</strong> ${formatNumber(fitnessDiff)} (average genome has zero fitness)</p>`;
+                    }
 
                     if (efficiencyDiff > 0.1) {
                         explanation += `<p><strong>🎯 Key Factor: Efficiency!</strong> The top genome has ${formatNumber(efficiencyDiff * 100, 1)}% higher efficiency. Since fitness = cumulative energy harvested, and energy gain = light × efficiency × nutrients, higher efficiency directly increases fitness.</p>`;
