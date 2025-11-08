@@ -16,23 +16,41 @@ Thank you for your interest in contributing to CodonSoup! This document provides
 ## Development Setup
 
 ```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install all dependencies
-pip install -r requirements-server.txt
-pip install -r requirements-client.txt
-pip install -r requirements-test.txt
+# Clone your fork
+git clone https://github.com/YOUR_USERNAME/CodonSoup.git
+cd CodonSoup
+
+# Install all dependencies with uv
+uv pip install -e ".[server,client,dev]"
+
+# Set up pre-commit hooks (recommended)
+make pre-commit
+# or: pre-commit install
 ```
 
 ## Code Style
 
-- Follow PEP 8 style guidelines
+The project uses **Ruff** for linting and formatting:
+
+- Follow PEP 8 style guidelines (enforced by Ruff)
 - Use meaningful variable and function names
 - Add docstrings to all functions and classes
 - Keep functions focused and concise
 - Add type hints where appropriate
+
+**Before committing:**
+```bash
+# Auto-format code
+make format
+
+# Check for issues
+make lint
+```
+
+Pre-commit hooks will automatically run these checks.
 
 ## Testing
 
@@ -43,10 +61,12 @@ pip install -r requirements-test.txt
 
 ```bash
 # Run all tests
-pytest
+make test
+# or: pytest
 
-# Run with coverage
-pytest --cov=client --cov=server
+# Run with coverage report
+make coverage
+# This generates htmlcov/index.html
 
 # Run specific test file
 pytest tests/client/test_organism.py -v

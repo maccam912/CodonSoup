@@ -4,9 +4,9 @@
 
 CodonSoup is a distributed artificial life simulation where genes are not predefined—they **emerge spontaneously** from variable-length genomes through START/STOP delimiters. Genes can overlap arbitrarily, most DNA is junk, and each client evolves light-seeking "bacteria" whose phenotypes arise from on-the-fly gene expression.
 
-[![Tests](https://github.com/maccam912/CodonSoup/workflows/Tests/badge.svg)](https://github.com/maccam912/CodonSoup/actions)
-[![Docker Build](https://github.com/maccam912/CodonSoup/workflows/Docker%20Build/badge.svg)](https://github.com/maccam912/CodonSoup/actions)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![uv](https://img.shields.io/badge/uv-package%20manager-blue)](https://github.com/astral-sh/uv)
 
 ## 🎯 Core Concept
 
@@ -51,28 +51,32 @@ docker-compose up
 open http://localhost:8080
 ```
 
-### Manual Setup
+### Manual Setup with uv
 
 ```bash
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
 # Clone repository
 git clone https://github.com/maccam912/CodonSoup.git
 cd CodonSoup
 
-# Set up Python environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Install dependencies with uv
+uv pip install -e ".[server,client]"
 
-# Install dependencies
-pip install -r requirements-server.txt
-pip install -r requirements-client.txt
+# For development (includes testing and linting tools)
+uv pip install -e ".[server,client,dev]"
+
+# Set up pre-commit hooks (optional but recommended)
+make pre-commit
 
 # Terminal 1: Start server
-cd server
-python server.py
+make server
+# or: cd server && python server.py
 
 # Terminal 2: Run client
-cd client
-python client.py --server=http://localhost:8080
+make client
+# or: cd client && python client.py --server=http://localhost:8080
 ```
 
 ## 📊 Architecture
@@ -149,21 +153,51 @@ Each organism has 4 traits determined by gene expression:
 5. Repeat
 ```
 
-## 🧪 Running Tests
+## 🧪 Development & Testing
+
+### Running Tests
 
 ```bash
-# Install test dependencies
-pip install -r requirements-test.txt
-
 # Run all tests
-pytest
+make test
+# or: pytest
 
-# Run with coverage
-pytest --cov=client --cov=server --cov-report=html
+# Run with coverage report
+make coverage
+# This generates an HTML report in htmlcov/index.html
 
 # Run specific test file
 pytest tests/client/test_organism.py -v
 ```
+
+### Code Quality
+
+```bash
+# Lint code with ruff
+make lint
+# or: ruff check .
+
+# Auto-format code with ruff
+make format
+# or: ruff format . && ruff check --fix .
+
+# Run pre-commit hooks manually
+pre-commit run --all-files
+```
+
+### Pre-commit Hooks
+
+The project uses pre-commit hooks to ensure code quality:
+- **Ruff**: Linting and formatting
+- **Pytest**: Runs tests with coverage before each commit
+
+Install hooks:
+```bash
+make pre-commit
+# or: pre-commit install
+```
+
+Once installed, hooks run automatically on `git commit`.
 
 ## 🐋 Docker Commands
 

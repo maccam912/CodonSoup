@@ -5,14 +5,15 @@ LABEL description="CodonSoup Server - Gene Pool & Dashboard"
 
 WORKDIR /app
 
-# Copy requirements
-COPY requirements-server.txt .
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements-server.txt
-
-# Copy server code
+# Copy project files
+COPY pyproject.toml .
 COPY server/ ./server/
+
+# Install dependencies using uv
+RUN uv pip install --system --no-cache ".[server]"
 
 # Create data directory
 RUN mkdir -p /app/data

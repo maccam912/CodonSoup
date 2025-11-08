@@ -5,14 +5,15 @@ LABEL description="CodonSoup Client - Distributed Evolution"
 
 WORKDIR /app
 
-# Copy requirements
-COPY requirements-client.txt .
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements-client.txt
-
-# Copy client code
+# Copy project files
+COPY pyproject.toml .
 COPY client/ ./client/
+
+# Install dependencies using uv
+RUN uv pip install --system --no-cache ".[client]"
 
 # Set working directory to client
 WORKDIR /app/client

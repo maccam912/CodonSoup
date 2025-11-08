@@ -1,11 +1,12 @@
-.PHONY: help install test lint clean docker-build docker-up docker-down server client
+.PHONY: help install test lint format coverage clean docker-build docker-up docker-down server client pre-commit
 
 help:
 	@echo "CodonSoup - Makefile Commands"
 	@echo ""
 	@echo "Setup:"
-	@echo "  make install       - Install all dependencies"
+	@echo "  make install       - Install all dependencies with uv"
 	@echo "  make install-dev   - Install dev dependencies"
+	@echo "  make pre-commit    - Install pre-commit hooks"
 	@echo ""
 	@echo "Running:"
 	@echo "  make server        - Start server"
@@ -13,8 +14,9 @@ help:
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test          - Run all tests"
-	@echo "  make test-cov      - Run tests with coverage"
-	@echo "  make lint          - Run linters"
+	@echo "  make coverage      - Run tests with coverage report"
+	@echo "  make lint          - Run ruff linter"
+	@echo "  make format        - Format code with ruff"
 	@echo ""
 	@echo "Docker:"
 	@echo "  make docker-build  - Build Docker images"
@@ -26,29 +28,28 @@ help:
 	@echo "  make clean         - Remove temporary files"
 
 install:
-	pip install -r requirements-server.txt
-	pip install -r requirements-client.txt
+	uv pip install -e ".[server,client]"
 
 install-dev:
-	pip install -r requirements-server.txt
-	pip install -r requirements-client.txt
-	pip install -r requirements-test.txt
-	pip install black flake8 isort
+	uv pip install -e ".[server,client,dev]"
+
+pre-commit:
+	pre-commit install
 
 test:
 	pytest
 
-test-cov:
-	pytest --cov=client --cov=server --cov-report=html --cov-report=term
+coverage:
+	pytest --cov=client --cov=server --cov-report=html --cov-report=term-missing
+	@echo ""
+	@echo "Coverage report generated in htmlcov/index.html"
 
 lint:
-	black --check server/ client/ tests/
-	isort --check-only server/ client/ tests/
-	flake8 server/ client/ tests/ --max-line-length=127
+	ruff check .
 
 format:
-	black server/ client/ tests/
-	isort server/ client/ tests/
+	ruff format .
+	ruff check --fix .
 
 clean:
 	find . -type f -name '*.pyc' -delete
@@ -57,6 +58,7 @@ clean:
 	rm -rf .pytest_cache
 	rm -rf htmlcov
 	rm -rf .coverage
+	rm -rf .ruff_cache
 	rm -rf dist
 	rm -rf build
 
