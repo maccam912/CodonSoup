@@ -19,7 +19,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Clone and run
 git clone https://github.com/maccam912/CodonSoup.git
 cd CodonSoup
-uv sync
+uv sync --extra client
 uv run python client/client.py
 ```
 

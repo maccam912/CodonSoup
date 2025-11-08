@@ -80,8 +80,14 @@ def submit_genome(server_url, genome, fitness, timeout=5):
         True if submission succeeded, False otherwise
     """
     try:
+        # Convert numpy types to Python native types for JSON serialization
+        genome_list = [float(x) for x in genome]
+        fitness_float = float(fitness)
+
         response = requests.post(
-            f"{server_url}/api/genome", json={"genome": genome, "fitness": fitness, "client_id": CLIENT_ID}, timeout=timeout
+            f"{server_url}/api/genome",
+            json={"genome": genome_list, "fitness": fitness_float, "client_id": CLIENT_ID},
+            timeout=timeout,
         )
         response.raise_for_status()
         return True
