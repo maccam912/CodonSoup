@@ -12,6 +12,7 @@ Connects to the CodonSoup server to participate in distributed evolution:
 import argparse
 import json
 import logging
+import os
 import sys
 import time
 
@@ -160,6 +161,70 @@ def submit_genome(server_url, genome, fitness, timeout=5):
         return False
 
 
+def save_checkpoint(checkpoint_file, generation, local_best_genome, args):
+    """
+    Save checkpoint to disk.
+
+    Args:
+        checkpoint_file: Path to checkpoint file
+        generation: Current generation number
+        local_best_genome: Best genome found so far (list of floats or None)
+        args: Command-line arguments namespace
+    """
+    checkpoint_data = {
+        "generation": generation,
+        "local_best_genome": local_best_genome,
+        "config": {
+            "server": args.server,
+            "total_generations": args.generations,
+            "ticks": args.ticks,
+            "population": args.population,
+            "sync_interval": args.sync_interval,
+            "offline": args.offline,
+        },
+        "timestamp": time.time(),
+        "client_id": CLIENT_ID,
+    }
+
+    try:
+        # Write to temporary file first, then rename for atomicity
+        temp_file = checkpoint_file + ".tmp"
+        with open(temp_file, "w") as f:
+            json.dump(checkpoint_data, f, indent=2)
+        os.replace(temp_file, checkpoint_file)
+        logger.info("💾 Checkpoint saved at generation %s", generation)
+    except Exception as e:
+        logger.error("Failed to save checkpoint: %s", e, exc_info=True)
+
+
+def load_checkpoint(checkpoint_file):
+    """
+    Load checkpoint from disk.
+
+    Args:
+        checkpoint_file: Path to checkpoint file
+
+    Returns:
+        dict with checkpoint data, or None if checkpoint doesn't exist or is invalid
+    """
+    if not os.path.exists(checkpoint_file):
+        logger.info("No checkpoint found at %s", checkpoint_file)
+        return None
+
+    try:
+        with open(checkpoint_file, "r") as f:
+            checkpoint_data = json.load(f)
+        logger.info(
+            "📂 Loaded checkpoint from generation %s (saved at %s)",
+            checkpoint_data.get("generation", "unknown"),
+            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(checkpoint_data.get("timestamp", 0))),
+        )
+        return checkpoint_data
+    except Exception as e:
+        logger.error("Failed to load checkpoint: %s", e, exc_info=True)
+        return None
+
+
 def run_generation(world, gen_num, ticks=300, verbose=True):
     """
     Run a single generation (multiple simulation ticks).
@@ -252,6 +317,22 @@ def main():
         help="Python logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL).",
     )
     parser.add_argument("--offline", action="store_true", help="Run without server connection (local evolution only)")
+    parser.add_argument(
+        "--checkpoint-file",
+        default="checkpoint.json",
+        help="Path to checkpoint file (default: checkpoint.json)",
+    )
+    parser.add_argument(
+        "--checkpoint-interval",
+        type=int,
+        default=10,
+        help="Save checkpoint every N generations (default: 10)",
+    )
+    parser.add_argument(
+        "--no-checkpoint",
+        action="store_true",
+        help="Disable checkpoint saving and loading",
+    )
 
     args = parser.parse_args()
 
@@ -271,10 +352,28 @@ def main():
     if args.sync_interval < 1:
         parser.error("--sync-interval must be at least 1")
 
-    # Main evolution loop
+    # Load checkpoint if available
+    start_generation = 0
     local_best_genome = None
 
-    for gen in range(args.generations):
+    if not args.no_checkpoint:
+        checkpoint = load_checkpoint(args.checkpoint_file)
+        if checkpoint:
+            start_generation = checkpoint.get("generation", 0) + 1
+            local_best_genome = checkpoint.get("local_best_genome")
+            logger.info("🔄 Resuming from generation %s", start_generation)
+
+            # Validate checkpoint config matches current args (warning only)
+            config = checkpoint.get("config", {})
+            if config.get("total_generations") != args.generations:
+                logger.warning(
+                    "Checkpoint was saved with different total_generations: %s (current: %s)",
+                    config.get("total_generations"),
+                    args.generations,
+                )
+
+    # Main evolution loop
+    for gen in range(start_generation, args.generations):
         # Create new world
         world = World()
 
@@ -326,6 +425,18 @@ def main():
                 else:
                     logger.warning("Submission of fittest genome failed")
 
+        # Save checkpoint periodically
+        if not args.no_checkpoint and (gen + 1) % args.checkpoint_interval == 0:
+            save_checkpoint(args.checkpoint_file, gen, local_best_genome, args)
+
+    # Evolution complete - clean up checkpoint
+    if not args.no_checkpoint and os.path.exists(args.checkpoint_file):
+        try:
+            os.remove(args.checkpoint_file)
+            logger.info("🗑️  Checkpoint file removed (evolution complete)")
+        except Exception as e:
+            logger.warning("Failed to remove checkpoint file: %s", e)
+
     logger.info("✅ Evolution complete!")
 
 
@@ -334,6 +445,7 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         logger.warning("⚠️  Interrupted by user")
+        logger.info("Checkpoint has been saved - use same command to resume")
         sys.exit(0)
     except Exception as e:
         logger.exception("❌ Unhandled error occurred: %s", e)
