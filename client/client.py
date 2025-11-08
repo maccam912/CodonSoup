@@ -12,7 +12,6 @@ Connects to the CodonSoup server to participate in distributed evolution:
 import argparse
 import json
 import logging
-import random
 import sys
 import time
 
@@ -238,10 +237,14 @@ def main():
     parser = argparse.ArgumentParser(description="CodonSoup Client - Distributed Artificial Life Evolution")
     parser.add_argument("--server", default=DEFAULT_SERVER, help=f"Server URL (default: {DEFAULT_SERVER})")
     parser.add_argument("--generations", type=int, default=1000, help="Number of generations to run (default: 1000)")
-    parser.add_argument("--ticks", type=int, default=300, help="Simulation ticks per generation (default: 300)")
+    parser.add_argument("--ticks", type=int, default=600, help="Simulation ticks per generation (default: 600)")
     parser.add_argument("--population", type=int, default=30, help="Initial population size (default: 30)")
-    parser.add_argument("--min-delay", type=int, default=30, help="Minimum delay between generations in seconds (default: 30)")
-    parser.add_argument("--max-delay", type=int, default=90, help="Maximum delay between generations in seconds (default: 90)")
+    parser.add_argument(
+        "--sync-interval",
+        type=int,
+        default=5,
+        help="Number of generations between server synchronizations (default: 5)",
+    )
     parser.add_argument("--quiet", action="store_true", help="Reduce output verbosity")
     parser.add_argument(
         "--log-level",
@@ -260,18 +263,17 @@ def main():
     logger.info("   Generations: %s", args.generations)
     logger.info("   Ticks/gen: %s", args.ticks)
     logger.info("   Initial pop: %s", args.population)
-    logger.info("   Delay between gens: %s-%ss", args.min_delay, args.max_delay)
+    logger.info("   Sync interval: every %s generations", args.sync_interval)
 
     if args.offline:
         logger.warning("   Mode: OFFLINE (no server connection)")
 
-    # Add initial random delay to spread out client start times
-    if not args.offline:
-        initial_delay = random.randint(0, args.max_delay)
-        logger.info("⏱️  Initial delay: %ss (spreading client load)", initial_delay)
-        time.sleep(initial_delay)
+    if args.sync_interval < 1:
+        parser.error("--sync-interval must be at least 1")
 
     # Main evolution loop
+    local_best_genome = None
+
     for gen in range(args.generations):
         # Create new world
         world = World()
@@ -279,17 +281,20 @@ def main():
         # Seed population
         seed_genome = None
 
-        if not args.offline:
-            # Try to fetch immigrant genome from server
+        fetch_from_server = not args.offline and (gen % args.sync_interval == 0 or local_best_genome is None)
+        if fetch_from_server:
             logger.debug("Requesting immigrant genome before generation %s", gen)
             seed_genome = fetch_immigrant_genome(args.server)
             if seed_genome:
                 logger.info("📥 Fetched immigrant genome (length: %s)", len(seed_genome))
 
-        # Fallback to starter genome
         if seed_genome is None:
-            seed_genome = create_starter_genome()
-            logger.info("🌱 Using starter genome (no immigrants available)")
+            if local_best_genome is not None:
+                seed_genome = local_best_genome
+                logger.info("🔁 Reusing local best genome (length: %s)", len(seed_genome))
+            else:
+                seed_genome = create_starter_genome()
+                logger.info("🌱 Using starter genome (no immigrants available)")
 
         # Create initial population
         for _ in range(args.population):
@@ -302,25 +307,24 @@ def main():
         fittest = run_generation(world, gen, ticks=args.ticks, verbose=not args.quiet)
 
         # Submit fittest genome back to pool
-        if fittest and not args.offline:
-            logger.debug(
-                "Preparing to submit fittest genome",
-                extra={
-                    "fitness": fittest.fitness,
-                    "genome_length": len(fittest.genome),
-                },
-            )
-            success = submit_genome(args.server, fittest.genome, fittest.fitness)
-            if success:
-                logger.info("📤 Submitted genome to pool")
-            else:
-                logger.warning("Submission of fittest genome failed")
+        if fittest:
+            local_best_genome = fittest.genome
 
-        # Randomized delay between generations to spread server load
-        delay = random.randint(args.min_delay, args.max_delay)
-        if not args.quiet:
-            logger.info("⏱️  Waiting %ss until next generation...", delay)
-        time.sleep(delay)
+            should_sync = not args.offline and ((gen + 1) % args.sync_interval == 0)
+            if should_sync:
+                logger.debug(
+                    "Preparing to submit fittest genome",
+                    extra={
+                        "generation": gen,
+                        "fitness": fittest.fitness,
+                        "genome_length": len(fittest.genome),
+                    },
+                )
+                success = submit_genome(args.server, fittest.genome, fittest.fitness)
+                if success:
+                    logger.info("📤 Submitted genome to pool")
+                else:
+                    logger.warning("Submission of fittest genome failed")
 
     logger.info("✅ Evolution complete!")
 

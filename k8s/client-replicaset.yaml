@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: codonsoup-client
+  labels:
+    app: codonsoup-client
+spec:
+  replicas: 30
+  selector:
+    matchLabels:
+      app: codonsoup-client
+  template:
+    metadata:
+      labels:
+        app: codonsoup-client
+    spec:
+      containers:
+        - name: codonsoup-client
+          image: ghcr.io/maccam912/codonsoup-client:main
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "1"
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
