@@ -35,6 +35,7 @@ def extract_genes(genome, threshold=0.95):
         return []
 
     genes = []
+    gene_positions = set()  # Track gene positions to avoid duplicates
     in_gene = False
     start_pos = 0
 
@@ -56,12 +57,19 @@ def extract_genes(genome, threshold=0.95):
             gene_len = i - start_pos - 1  # Exclude START and STOP codons
 
             if 3 <= gene_len <= 20:
-                # Extract gene sequence (excluding START and STOP)
-                gene_seq = []
-                for j in range(start_pos + 1, i):
-                    idx = j % len(genome)
-                    gene_seq.append(genome[idx])
-                genes.append(gene_seq)
+                # Normalize start position to genome coordinates
+                normalized_start = start_pos % len(genome)
+
+                # Only add if we haven't seen this gene position before
+                if normalized_start not in gene_positions:
+                    gene_positions.add(normalized_start)
+
+                    # Extract gene sequence (excluding START and STOP)
+                    gene_seq = []
+                    for j in range(start_pos + 1, i):
+                        idx = j % len(genome)
+                        gene_seq.append(genome[idx])
+                    genes.append(gene_seq)
 
             in_gene = False
 

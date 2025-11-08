@@ -53,25 +53,39 @@ def extract_genes(genome, threshold=0.95):
     Returns:
         List of gene sequences (each gene is a list of floats)
     """
+    if not genome or len(genome) < 5:
+        return []
+
     genes = []
+    gene_positions = set()  # Track gene positions to avoid duplicates
     in_gene = False
     start_pos = 0
 
     # Circular genome: wrap around to catch genes spanning the origin
-    extended = genome + genome[:20]
+    extended = genome + genome[:25]
 
     for i, val in enumerate(extended):
+        if i >= len(genome) + 20:  # Don't go too far past the end
+            break
+
         if not in_gene and val > threshold:
             in_gene = True
             start_pos = i
         elif in_gene and val < 0.05:
             gene_len = i - start_pos - 1  # Exclude START and STOP
             if 3 <= gene_len <= 20:
-                # Extract gene (wrap-aware)
-                gene_seq = []
-                for j in range(start_pos + 1, i):
-                    gene_seq.append(extended[j % len(genome)])
-                genes.append(gene_seq)
+                # Normalize start position to genome coordinates
+                normalized_start = start_pos % len(genome)
+
+                # Only add if we haven't seen this gene position before
+                if normalized_start not in gene_positions:
+                    gene_positions.add(normalized_start)
+
+                    # Extract gene (wrap-aware)
+                    gene_seq = []
+                    for j in range(start_pos + 1, i):
+                        gene_seq.append(extended[j % len(genome)])
+                    genes.append(gene_seq)
             in_gene = False
 
     return genes
