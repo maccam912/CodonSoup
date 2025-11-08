@@ -1,4 +1,4 @@
-.PHONY: help install test lint format coverage clean docker-build docker-up docker-down server client pre-commit
+.PHONY: help install install-dev test lint format coverage clean docker-build docker-up docker-down server client pre-commit
 
 help:
 	@echo "CodonSoup - Makefile Commands"
@@ -36,7 +36,7 @@ install-dev:
 pre-commit:
 	uv run pre-commit install
 
-test:
+test: install-dev
 	uv run pytest
 
 coverage:
