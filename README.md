@@ -8,6 +8,25 @@ CodonSoup is a distributed artificial life simulation where genes are not predef
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![uv](https://img.shields.io/badge/uv-package%20manager-blue)](https://github.com/astral-sh/uv)
 
+## 🚀 Quick Start (Run a Client)
+
+Want to contribute to the global gene pool right away? Run a client connected to the central server:
+
+```bash
+# Install uv package manager
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone and run
+git clone https://github.com/maccam912/CodonSoup.git
+cd CodonSoup
+uv sync
+uv run python client/client.py
+```
+
+That's it! Your client will automatically connect to the central server and start evolving bacteria. Watch the evolution happen in your terminal.
+
+---
+
 ## 🎯 Core Concept
 
 Each client simulates a 120×120 petri dish where bacteria swim in a nutrient-light gradient. Genomes are **circular, variable-length sequences** (50–200 codons) where:
@@ -35,7 +54,9 @@ Each client simulates a 120×120 petri dish where bacteria swim in a nutrient-li
 - **Genome Bloat**: Successful lineages accumulate junk DNA over time
 - **Metapopulation Waves**: Breakthrough genes spread globally across clients
 
-## 🚀 Quick Start
+## 🛠️ Full Setup (Server + Clients)
+
+Want to run your own server? Use this setup for local development or running a private gene pool.
 
 ### Using Docker (Recommended)
 
