@@ -16,6 +16,7 @@ import numpy as np
 from flask import Flask, jsonify, render_template, request
 
 DB_PATH = "data/soup.db"
+MAX_POOL_SIZE = int(os.getenv("MAX_POOL_SIZE", "10000"))  # Maximum genomes to keep in pool
 app = Flask(__name__)
 
 
@@ -137,7 +138,7 @@ def post_genome():
             "client_id": string
         }
 
-    Pool management: Keeps top 2000 genomes by fitness
+    Pool management: Keeps top genomes by fitness (configurable via MAX_POOL_SIZE)
 
     Returns:
         JSON: {"status": "ok"}
@@ -156,16 +157,17 @@ def post_genome():
         (json.dumps(data["genome"]), data["fitness"], len(data["genome"]), data.get("client_id", "anonymous")),
     )
 
-    # Prune pool to top 2000 genomes
+    # Prune pool to top N genomes
     c.execute(
         """
         DELETE FROM genomes
         WHERE id NOT IN (
             SELECT id FROM genomes
             ORDER BY fitness DESC
-            LIMIT 2000
+            LIMIT ?
         )
-    """
+    """,
+        (MAX_POOL_SIZE,),
     )
 
     conn.commit()
