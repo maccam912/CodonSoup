@@ -1,0 +1,32 @@
+FROM python:3.11-slim
+
+LABEL maintainer="CodonSoup"
+LABEL description="CodonSoup Server - Gene Pool & Dashboard"
+
+WORKDIR /app
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Copy project files
+COPY pyproject.toml .
+COPY server/ ./server/
+
+# Sync dependencies using uv
+RUN uv sync --frozen --no-dev --extra server
+
+# Create data directory
+RUN mkdir -p /app/data
+
+# Expose port
+EXPOSE 8080
+
+# Set working directory to server
+WORKDIR /app/server
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD uv run python -c "import requests; requests.get('http://localhost:8080/health')" || exit 1
+
+# Run server
+CMD ["uv", "run", "python", "server.py"]
