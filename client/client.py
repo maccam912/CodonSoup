@@ -124,17 +124,13 @@ def run_generation(world, gen_num, ticks=300, verbose=True):
     # Final statistics
     stats = world.get_statistics()
     if verbose:
-        print(f"   Final: pop={stats['population']}, " f"avg_fitness={stats['avg_fitness']:.2f}")
+        print(f"   Final: pop={stats['population']}, avg_fitness={stats['avg_fitness']:.2f}")
 
     # Get fittest organism
     fittest = world.get_fittest()
 
     if fittest and verbose:
-        print(
-            f"   🏆 Fittest: fitness={fittest.fitness:.2f}, "
-            f"energy={fittest.energy:.2f}, "
-            f"genome_len={len(fittest.genome)}"
-        )
+        print(f"   🏆 Fittest: fitness={fittest.fitness:.2f}, energy={fittest.energy:.2f}, genome_len={len(fittest.genome)}")
         print(
             f"      Phenotype: speed={fittest.phenotype[0]:.2f}, "
             f"turn={fittest.phenotype[1]:.2f}, "
@@ -144,7 +140,7 @@ def run_generation(world, gen_num, ticks=300, verbose=True):
 
         # Show gene expression
         genes = extract_genes(fittest.genome)
-        print(f"      Active genes: {len(genes)}, " f"lengths: {[len(g) for g in genes]}")
+        print(f"      Active genes: {len(genes)}, lengths: {[len(g) for g in genes]}")
 
     return fittest
 

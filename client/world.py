@@ -185,4 +185,4 @@ class World:
     def __repr__(self):
         """String representation for debugging"""
         stats = self.get_statistics()
-        return f"World(tick={self.tick}, " f"population={stats['population']}, " f"avg_fitness={stats['avg_fitness']:.2f})"
+        return f"World(tick={self.tick}, population={stats['population']}, avg_fitness={stats['avg_fitness']:.2f})"
